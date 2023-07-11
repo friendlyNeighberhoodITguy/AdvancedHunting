@@ -1,2 +1,2 @@
 # AdvancedHunting
-Advanced hunting scripts that I have usee
+Just putting it out there.
