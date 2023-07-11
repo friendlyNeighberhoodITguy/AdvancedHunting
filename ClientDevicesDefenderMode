@@ -1,0 +1,20 @@
+// The following script lists out all the Active and Passive DefenderAntivirus enabled devices in the environment.
+// Can be modified to include servers
+
+DeviceInfo
+| distinct DeviceName,LoggedOnUsers
+| project DeviceName, CurrentUsers = parse_json(LoggedOnUsers)
+| mv-apply CurrentUsers on (
+           project DeviceName, User = CurrentUsers.UserName 
+                            )
+| project DeviceName, Username = tostring(User)
+|join kind=inner DeviceTvmInfoGathering on DeviceName
+| where OSPlatform == "Windows10" or OSPlatform == "Windows11"
+| project DeviceName,Username,OSPlatform,AvDetails = parse_json(AdditionalFields) 
+| mv-apply AvDetails on ( 
+            project DeviceName, AvMode = AvDetails.AvMode 
+                        )
+| where AvMode == 1 or AvMode == 0 
+| project DeviceName,Username,OSPlatform,tostring(AvMode)
+| extend DefenderState = iff(AvMode == 0, AvModex = "Active", AvModex = "Passive" ) 
+| project DeviceName,Username,OSPlatform,DefenderState
